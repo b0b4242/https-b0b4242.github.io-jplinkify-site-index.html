@@ -22,11 +22,15 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Unzip site
         run: |
           set -e
-          zipfile=$(ls *.zip | head -n 1)
+          zipfile=$(git log --diff-filter=AM --name-only --pretty=format: -- '*.zip' | grep -m1 '\.zip$')
+          [ -n "$zipfile" ] || { echo "No zip found"; exit 1; }
+          echo "Using: $zipfile"
           mkdir -p _unzipped _site
           unzip -q "$zipfile" -d _unzipped
           index=$(find _unzipped -name index.html -not -path '*/__MACOSX/*' | head -n 1)
